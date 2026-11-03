@@ -1,0 +1,46 @@
+name: Quality
+on:
+  push:
+  pull_request:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: listly
+          POSTGRES_PASSWORD: listly_ci_only
+          POSTGRES_DB: listly_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U listly -d listly_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://listly:listly_ci_only@localhost:5432/listly_test
+      TEST_DATABASE_URL: postgresql://listly:listly_ci_only@localhost:5432/listly_test
+      APP_ORIGIN: http://localhost:3000
+      MOCK_AI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run db:migrate:sql
+      - run: npm run db:migrate:sql
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:all
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failures
+          path: test-results/
+          retention-days: 5

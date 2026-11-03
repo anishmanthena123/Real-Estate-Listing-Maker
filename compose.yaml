@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: listly
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-listly_local_only}
+      POSTGRES_DB: listly
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - listly_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U listly -d listly']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+volumes:
+  listly_db:

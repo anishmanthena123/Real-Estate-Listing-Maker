@@ -1,0 +1,193 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PropertyStatus {
+  DRAFT
+  ACTIVE
+  SOLD
+  ARCHIVED
+}
+
+enum FeatureStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum ReviewStatus {
+  DRAFT
+  NEEDS_REVIEW
+  READY
+}
+
+enum ClaimStatus {
+  SUPPORTED
+  UNVERIFIED
+  POTENTIALLY_MISLEADING
+}
+
+enum ContentType {
+  MLS
+  LISTING
+  INSTAGRAM
+  FACEBOOK
+  EMAIL
+  BLURB
+}
+
+enum Style {
+  Professional
+  Luxury
+  Modern
+  Warm
+  Concise
+}
+
+enum Length {
+  Short
+  Medium
+  Long
+}
+
+model User {
+  id           String     @id @default(uuid()) @db.Uuid
+  email        String     @unique
+  passwordHash String
+  createdAt    DateTime   @default(now())
+  properties   Property[]
+  sessions     Session[]
+}
+
+model Session {
+  id        String   @id
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model RateLimit {
+  key         String   @id
+  count       Int      @default(1)
+  windowStart DateTime @default(now())
+}
+
+model Property {
+  id              String            @id @default(uuid()) @db.Uuid
+  userId          String            @db.Uuid
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address         String
+  city            String
+  state           String
+  zipCode         String
+  price           Decimal           @db.Decimal(14, 2)
+  bedrooms        Int
+  bathrooms       Decimal           @db.Decimal(5, 1)
+  squareFeet      Int
+  propertyType    String
+  yearBuilt       Int
+  lotSize         Decimal?          @db.Decimal(14, 2)
+  notes           String            @default("")
+  status          PropertyStatus    @default(DRAFT)
+  evidenceVersion Int               @default(1)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  photos          PropertyPhoto[]
+  features        DetectedFeature[]
+  generations     Generation[]
+
+  @@index([userId, updatedAt])
+}
+
+model PropertyPhoto {
+  id           String            @id @default(uuid()) @db.Uuid
+  propertyId   String            @db.Uuid
+  property     Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  storageKey   String            @unique
+  mimeType     String
+  size         Int
+  originalName String
+  analyzedAt   DateTime?
+  createdAt    DateTime          @default(now())
+  features     DetectedFeature[]
+
+  @@unique([id, propertyId])
+  @@index([propertyId])
+}
+
+model DetectedFeature {
+  id         String        @id @default(uuid()) @db.Uuid
+  propertyId String        @db.Uuid
+  property   Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  photoId    String        @db.Uuid
+  photo      PropertyPhoto @relation(fields: [photoId, propertyId], references: [id, propertyId], onDelete: Cascade)
+  label      String
+  status     FeatureStatus @default(PENDING)
+  reviewedAt DateTime?
+  createdAt  DateTime      @default(now())
+
+  @@unique([photoId, label])
+  @@index([propertyId, status])
+}
+
+model Generation {
+  id                      String       @id @default(uuid()) @db.Uuid
+  propertyId              String       @db.Uuid
+  property                Property     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  contentType             ContentType
+  style                   Style
+  length                  Length
+  originalText            String
+  text                    String
+  status                  ReviewStatus @default(NEEDS_REVIEW)
+  provider                String
+  model                   String
+  contextSnapshot         Json
+  originalContextSnapshot Json
+  evidenceVersion         Int
+  revision                Int          @default(1)
+  reviewedAt              DateTime?
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+  claims                  Claim[]
+  feedback                Feedback[]
+
+  @@index([propertyId, createdAt])
+  @@index([status])
+}
+
+model Claim {
+  id           String      @id @default(uuid()) @db.Uuid
+  generationId String      @db.Uuid
+  generation   Generation  @relation(fields: [generationId], references: [id], onDelete: Cascade)
+  text         String
+  sentence     String
+  status       ClaimStatus
+  reason       String
+  evidence     String?
+  createdAt    DateTime    @default(now())
+
+  @@index([generationId, status])
+}
+
+model Feedback {
+  id                 String     @id @default(uuid()) @db.Uuid
+  generationId       String     @db.Uuid
+  generation         Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+  rating             Int
+  comment            String     @default("")
+  generationRevision Int
+  createdAt          DateTime   @default(now())
+
+  @@index([generationId, createdAt])
+}
