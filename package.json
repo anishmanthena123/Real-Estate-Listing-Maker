@@ -19,7 +19,8 @@
     "postinstall": "PRISMA_JS_MIGRATIONS=true prisma generate",
     "db:migrate:sql": "tsx scripts/apply-migrations.ts",
     "test:e2e": "playwright test",
-    "db:test:migrate": "tsx scripts/migrate-test.ts"
+    "db:test:migrate": "tsx scripts/migrate-test.ts",
+    "start:production": "tsx scripts/start-production.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^6.19.3",

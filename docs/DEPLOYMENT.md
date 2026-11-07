@@ -2,6 +2,10 @@
 
 No public deployment has been performed. Local production build/browser validation is not a hosting or recovery test.
 
+## Render deployment
+
+The repository now includes a deployment blueprint. Follow [RENDER_SETUP.md](RENDER_SETUP.md) to create an account, connect this repository, securely supply the AI key, review hosting costs, and launch the full app. This is prepared configuration, not evidence of a completed public deployment.
+
 ## Recommended target
 
 A persistent Node.js host/container plus managed PostgreSQL is the simplest fit for the current local-storage implementation. Node 22.12+ is required; Node 24 was used in validation. Do not deploy local photos to an ephemeral serverless filesystem. For multiple instances or serverless hosting, first implement private object storage behind PhotoStorage.

@@ -1,0 +1,44 @@
+# Review Render's displayed pricing before creating these paid resources.
+services:
+  - type: web
+    name: listly-ai
+    runtime: node
+    plan: starter
+    region: oregon
+    branch: main
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm run start:production
+    healthCheckPath: /api/health
+    autoDeploy: false
+    disk:
+      name: listly-photos
+      mountPath: /var/data/listly
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: '24'
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: listly-db
+          property: connectionString
+      - key: STORAGE_DIR
+        value: /var/data/listly/photos
+      - key: MOCK_AI
+        value: 'false'
+      - key: AI_BASE_URL
+        value: https://api.openai.com/v1
+      - key: AI_MODEL
+        value: gpt-4o-mini
+      - key: AI_API_KEY
+        sync: false
+
+databases:
+  - name: listly-db
+    plan: basic-256mb
+    region: oregon
+    databaseName: listly
+    user: listly
+    postgresMajorVersion: '17'
+    ipAllowList: []

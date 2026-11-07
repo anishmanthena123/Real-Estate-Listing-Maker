@@ -31,3 +31,7 @@ The repository started empty. Validation uses the actual PostgreSQL schema and a
 6. Review the remaining development-only dependency advisories and plugin compatibility during routine updates; do not force incompatible major upgrades merely to suppress audit output.
 7. UI pagination/search beyond the latest 200 properties and 100 generations per property remains unimplemented.
 8. No independent security, accessibility, legal-compliance, performance or AI-accuracy evaluation has been performed.
+
+## Hosting preparation follow-up
+
+The Render deployment follow-up passed lint, typecheck, production build, and all 136 unit/integration tests (92 unit tests, including 19 new deployment/readiness cases, plus 44 PostgreSQL integration tests). The deployment YAML's local structure and persistent-disk/secret bindings were checked. The actual production entrypoint was started with an assigned port and explicit mock AI: committed migrations were recognized as already applied, `/api/health` returned 200 with only an ok status, and `/api/me` returned 401 without a session. This smoke test did not incur AI calls. Render-side provisioning/schema validation, public URL verification and live provider validation remain pending the user's hosting account, paid-resource review and secure API-key entry. Follow RENDER_SETUP.md.

@@ -12,6 +12,10 @@ Listly separates observation, verification, generation, claim checks, and human 
 
 The application supports property CRUD, private multi-photo uploads, photo analysis, six content types, style/length selection, an editable review workspace, generation history, revision-aware feedback, and a dashboard based on actual database counts.
 
+## Put the app online
+
+Deploy this same repository as a full-stack app using the [Render setup guide](docs/RENDER_SETUP.md). The included blueprint provisions PostgreSQL and persistent photos and enables live AI after you enter a server-side API key. Hosting and API usage have separate costs; review pricing before provisioning.
+
 ## Demo
 
 There is no published demo or claimed customer usage. Run the local setup below and create an account. `MOCK_AI=true` makes the complete workflow usable without a paid API or API key. Mock photo analysis returns fixed sample suggestions and **does not inspect the photo**. Its conservative, template-based copy intentionally tests the workflow rather than simulating natural writing quality or style fidelity.
