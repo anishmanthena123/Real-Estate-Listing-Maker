@@ -15,6 +15,9 @@ This requires no Render account, database, paid hosting plan, or AI key. If GitH
 
 ## What visitors can do
 
+- Enter one property address. Exact sample-address matches load fictional records; any other address creates an address-only workspace with unknown price, beds, baths, area, type and year. No live property lookup is connected.
+- Optionally import up to 10 JPEG, PNG or WebP pictures per property (8 MB each), preview/remove them and switch between properties. Pictures stay in browser memory and are never uploaded by this demo.
+- Add a visible catalog feature as PENDING after importing a photo, then explicitly verify or reject it. Importing a picture never creates verified evidence automatically. Removing a picture resets verified features to PENDING and invalidates draft readiness.
 - Explore three fictional properties, clearly labeled as samples.
 - Verify/reject preloaded photo-feature suggestions; pending and rejected suggestions never enter generation context.
 - Inspect the exact context sent to the local deterministic generator.
@@ -24,7 +27,7 @@ This requires no Render account, database, paid hosting plan, or AI key. If GitH
 - Reverse feature verification and see old content require review again.
 - Inspect drafts and record demo feedback in the current tab. Reload or reset discards it.
 
-No real property photos are analyzed, no provider calls occur, no authentication is simulated as secure, and no data is written to the backend. Only static HTML/JS/CSS/SVG assets are published. Original illustrations are included in the repository. This demo makes no claim of users, customer feedback, model accuracy, legal compliance, or production usage.
+Imported property photos are displayed locally but are not analyzed by AI, no provider calls occur, no authentication is simulated as secure, and no data is written to the backend. Only static HTML/JS/CSS/SVG assets are published. Original illustrations are included in the repository. This demo makes no claim of users, customer feedback, model accuracy, legal compliance, or production usage.
 
 ## Implementation
 
@@ -48,3 +51,9 @@ The UI supports keyboard focus and reduced-motion preferences. Browser checks do
 ## Presenting this project
 
 Link the deployed demo in applications after confirming it loads publicly. Describe it as an **interactive demonstration of an evidence-grounded marketing workflow**, with the full-stack implementation available in the repository. Explain the simulated generation and limited validator candidly. Do not present the demo as an already deployed production AI service.
+
+## Address-only and photo-import boundaries
+
+The address entry is the only required intake field. It does not geocode, fetch an MLS/public-record listing, guess a price, borrow facts from a nearby sample, or download pictures. Unknown attributes are represented as null and excluded from factual generation/claim support, not replaced with zero. The shared context/validator accepts those unknowns; the full app's existing server-side CRUD schema still requires validated structured property data and its database schema has not been weakened. Real automatic enrichment would require a configured property-data provider with appropriate access and independent provenance/verification.
+
+Photo import checks file size, MIME and JPEG/PNG/WebP signatures, then actually decodes images in the browser and enforces a 40-megapixel limit. Unsupported/spoofed/broken pictures produce visible errors. A failed batch leaves existing pictures intact. Decoded validation bitmaps are closed, and preview object URLs are revoked when removed/reset or when the workspace unmounts. Pending imports are cancelled on reset. No local images are added to GitHub, browser storage, or provider requests. Imported photos reset on reload. The authenticated full app retains its separate private server upload/analysis implementation.

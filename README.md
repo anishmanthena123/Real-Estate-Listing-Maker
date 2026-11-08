@@ -4,7 +4,7 @@ AI-assisted real-estate marketing platform that grounds generated content in str
 
 ## Free interactive portfolio website
 
-The repository includes a standalone, responsive demo for GitHub Pages, with fictional sample properties and no login or API key. Visitors can verify/reject features, inspect the generation context, generate deterministic drafts, edit claims, mark reviewed content ready, and explore session history.
+The repository includes a standalone, responsive demo for GitHub Pages, with fictional sample properties and no login or API key. Visitors can start with a single address, optionally import multiple pictures, verify/reject visible features, inspect generation context, generate deterministic drafts, edit claims, mark reviewed content ready, and explore session history. Unknown addresses do not receive invented property facts.
 
 **After Pages is enabled and deployment succeeds:** [Open the portfolio demo](https://anishmanthena123.github.io/Real-Estate-Listing-Maker/).
 

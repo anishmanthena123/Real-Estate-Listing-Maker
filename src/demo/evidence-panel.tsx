@@ -1,11 +1,25 @@
+import { useState } from 'react';
+import { PhotoImport } from './photo-import';
+import type { LocalPhoto } from './local-photos';
+import { FEATURE_LABELS } from '../server/ai/grounding';
 import { demoContext, type SampleProperty, type Feature } from './model';
 export function EvidencePanel({
   property,
   review,
+  photos,
+  importFiles,
+  removePhoto,
+  addFeature,
 }: {
   property: SampleProperty;
   review: (label: string, status: Feature['status']) => void;
+  photos: LocalPhoto[];
+  importFiles: (files: File[]) => Promise<void>;
+  removePhoto: (id: string) => void;
+  addFeature: (label: string) => void;
 }) {
+  const [label, setLabel] = useState('');
+  const needsPhoto = !property.isSample && photos.length === 0;
   const verified = property.features.filter((f) => f.status === 'VERIFIED');
   return (
     <section className="workflow-panel">
@@ -14,20 +28,35 @@ export function EvidencePanel({
         <div>
           <h4>Make the evidence yours.</h4>
           <p>
-            Review the sample suggestions. Only verified features reach the
-            draft.
+            Import pictures and review visible features. Only verified features
+            reach the draft.
           </p>
         </div>
         <span className="badge verified">{verified.length} verified</span>
       </div>
+      <PhotoImport
+        photos={photos}
+        importFiles={importFiles}
+        remove={removePhoto}
+      />
       <div className="verification-layout">
-        <div className="photo-placeholder">
-          <img
-            src="./assets/home.svg"
-            alt="Sample property illustration, not a photo used for actual AI analysis"
-          />
-          <span>Demo illustration · preloaded suggestions</span>
-        </div>
+        {property.isSample ? (
+          <div className="photo-placeholder">
+            <img
+              src="./assets/home.svg"
+              alt="Sample property illustration, not a photo used for actual AI analysis"
+            />
+            <span>Demo illustration · preloaded suggestions</span>
+          </div>
+        ) : (
+          <div className="address-photo-note">
+            <strong>Your address, your evidence.</strong>
+            <p>
+              Import your own pictures above. No sample image or automatic
+              feature detection is attached to this address.
+            </p>
+          </div>
+        )}
         <div className="feature-list">
           {property.features.map((feature) => (
             <div className="feature-row" key={feature.label}>
@@ -40,7 +69,7 @@ export function EvidencePanel({
               <div className="feature-actions">
                 <button
                   className="verify"
-                  disabled={feature.status === 'VERIFIED'}
+                  disabled={feature.status === 'VERIFIED' || needsPhoto}
                   onClick={() => review(feature.label, 'VERIFIED')}
                 >
                   ✓ Verify
@@ -54,6 +83,46 @@ export function EvidencePanel({
               </div>
             </div>
           ))}
+          <div className="manual-feature">
+            <label htmlFor="visible-feature">
+              Add a visible feature to review
+            </label>
+            <select
+              id="visible-feature"
+              value={label}
+              onChange={(event) => setLabel(event.target.value)}
+              disabled={needsPhoto}
+            >
+              <option value="">Choose a feature</option>
+              {FEATURE_LABELS.map((value) => (
+                <option
+                  key={value}
+                  disabled={property.features.some((f) => f.label === value)}
+                >
+                  {value}
+                </option>
+              ))}
+            </select>
+            <button
+              disabled={
+                needsPhoto ||
+                !label ||
+                property.features.some((f) => f.label === label)
+              }
+              onClick={() => {
+                addFeature(label);
+                setLabel('');
+              }}
+            >
+              Add pending feature
+            </button>
+          </div>
+          {needsPhoto && (
+            <p className="hint">
+              Import a picture first to add and verify features for this
+              address.
+            </p>
+          )}
           <p className="hint">
             A model suggestion isn’t a property fact. In the full app, photo
             analysis creates pending detections for agent review.

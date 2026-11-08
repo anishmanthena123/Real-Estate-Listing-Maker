@@ -21,21 +21,43 @@ export function factSentences(
   context: GroundedContext,
 ): { text: string; evidence: string }[] {
   const p = context.property;
+  const locality = [p.city, [p.state, p.zipCode].filter(Boolean).join(' ')]
+    .filter(Boolean)
+    .join(', ');
   return [
     {
-      text: `Located at ${p.address}, ${p.city}, ${p.state} ${p.zipCode}`,
+      text: `Located at ${[p.address, locality].filter(Boolean).join(', ')}`,
       evidence: 'property.address/city/state/zipCode',
     },
-    { text: `${p.bedrooms} bedrooms`, evidence: 'property.bedrooms' },
-    { text: `${p.bathrooms} bathrooms`, evidence: 'property.bathrooms' },
-    { text: `${p.squareFeet} square feet`, evidence: 'property.squareFeet' },
-    { text: `Listed at $${p.price}`, evidence: 'property.price' },
-    { text: `Built in ${p.yearBuilt}`, evidence: 'property.yearBuilt' },
-    {
-      text: `Property type: ${p.propertyType}`,
-      evidence: 'property.propertyType',
-    },
-    ...(p.lotSize
+    ...(p.bedrooms !== null
+      ? [{ text: `${p.bedrooms} bedrooms`, evidence: 'property.bedrooms' }]
+      : []),
+    ...(p.bathrooms !== null
+      ? [{ text: `${p.bathrooms} bathrooms`, evidence: 'property.bathrooms' }]
+      : []),
+    ...(p.squareFeet !== null
+      ? [
+          {
+            text: `${p.squareFeet} square feet`,
+            evidence: 'property.squareFeet',
+          },
+        ]
+      : []),
+    ...(p.price !== null
+      ? [{ text: `Listed at $${p.price}`, evidence: 'property.price' }]
+      : []),
+    ...(p.yearBuilt !== null
+      ? [{ text: `Built in ${p.yearBuilt}`, evidence: 'property.yearBuilt' }]
+      : []),
+    ...(p.propertyType !== null
+      ? [
+          {
+            text: `Property type: ${p.propertyType}`,
+            evidence: 'property.propertyType',
+          },
+        ]
+      : []),
+    ...(p.lotSize !== null
       ? [
           {
             text: `Lot size: ${p.lotSize} square feet`,

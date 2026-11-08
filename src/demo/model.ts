@@ -9,6 +9,7 @@ export type SampleProperty = GroundingProperty & {
   name: string;
   features: Feature[];
   tag: string;
+  isSample?: boolean;
 };
 export type Draft = {
   id: number;
@@ -83,7 +84,8 @@ export const samples: SampleProperty[] = [
     ],
   },
 ];
-export const freshProperties = () => structuredClone(samples);
+export const freshProperties = () =>
+  structuredClone(samples).map((p) => ({ ...p, isSample: true }));
 export function demoContext(property: SampleProperty) {
   return buildContext(property, property.features);
 }
@@ -117,4 +119,41 @@ export function canMarkReady(
     claims.length > 0 &&
     claims.every((c) => c.status === 'SUPPORTED')
   );
+}
+
+const normalizeAddress = (value: string) =>
+  value.toLowerCase().replace(/[,.]/g, ' ').replace(/\s+/g, ' ').trim();
+export function resolveDemoAddress(
+  value: string,
+  existing: SampleProperty[],
+): SampleProperty {
+  const address = value.trim().replace(/\s+/g, ' ');
+  if (address.length < 5 || address.length > 300 || !/\p{L}/u.test(address))
+    throw new Error('Enter an address between 5 and 300 characters.');
+  const key = normalizeAddress(address);
+  const match = existing.find((p) =>
+    [p.address, `${p.address}, ${p.city}, ${p.state} ${p.zipCode}`].some(
+      (candidate) => normalizeAddress(candidate) === key,
+    ),
+  );
+  if (match) return match;
+  // An address is not evidence of price, dimensions, age, amenities, or photos.
+  return {
+    id: `address-${crypto.randomUUID()}`,
+    name: address,
+    address,
+    city: '',
+    state: '',
+    zipCode: '',
+    price: null,
+    bedrooms: null,
+    bathrooms: null,
+    squareFeet: null,
+    propertyType: null,
+    yearBuilt: null,
+    lotSize: null,
+    features: [],
+    tag: 'Address entered by you',
+    isSample: false,
+  };
 }

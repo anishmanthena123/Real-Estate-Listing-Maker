@@ -42,3 +42,7 @@ Secrets remain on the server. HTTPS and redirect refusal reduce accidental crede
 ## Evaluation and next steps
 
 Automated tests demonstrate code invariants, not model accuracy. Build an independently labeled adversarial dataset before claiming claim-extraction recall, legal-risk coverage or vision precision. Include compound claims, negation, units, decimals, subtle targeting, prompt injection in field values, paraphrases, conflicting observations and stale evidence. Any future semantic extractor should retain deterministic ownership/evidence boundaries and conservative fallback behavior.
+
+## Address-only portfolio entry
+
+The static portfolio demo can start with an arbitrary user-entered address and local photo previews. Without a property-data provider, all other facts remain unknown. The shared context uses null for unknown attributes and fact/claim matching excludes them; unknown bedrooms are never represented as zero, for example. No fictional sample data is attached to a nearby but nonmatching address. Local picture import does not run a model or verify a feature. User-added visible features start PENDING and require explicit review. Picture deletion resets verified demo features for review. These additions do not relax the full application's authenticated CRUD validation or ownership rules.

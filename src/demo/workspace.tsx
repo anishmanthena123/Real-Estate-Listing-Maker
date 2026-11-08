@@ -5,18 +5,27 @@ import {
   canMarkReady,
   type Draft,
   type Feature,
+  type SampleProperty,
 } from './model';
 import { EvidencePanel } from './evidence-panel';
 import { ReviewPanel } from './review-panel';
-const money = (value: { toString(): string }) =>
-  new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(Number(value.toString()));
+import { AddressIntake } from './address-intake';
+import { useLocalPhotos } from './use-local-photos';
+import { FEATURE_LABELS } from '../server/ai/grounding';
+const money = (value: { toString(): string } | null) =>
+  value === null
+    ? 'Not supplied'
+    : new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 0,
+      }).format(Number(value.toString()));
 export function Workspace() {
-  const [properties, setProperties] = useState(freshProperties);
+  const [properties, setProperties] =
+    useState<SampleProperty[]>(freshProperties);
+  const { photos, importPhotos, removePhoto, resetPhotos } = useLocalPhotos();
   const [selectedId, setSelectedId] = useState('willow');
+  const [resetVersion, setResetVersion] = useState(0);
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [activeId, setActiveId] = useState<number | null>(null);
   const [text, setText] = useState('');
@@ -37,6 +46,52 @@ export function Workspace() {
     setAck(false);
     setError('');
     setNotice('');
+  }
+  function openAddress(found: SampleProperty) {
+    setProperties((items) =>
+      items.some((p) => p.id === found.id) ? items : [found, ...items],
+    );
+    select(found.id);
+    setNotice(
+      found.isSample
+        ? 'Loaded a fictional sample record, not a live lookup.'
+        : 'Address entered. Other facts are unknown and excluded from generation. You can optionally import pictures and verify visible features.',
+    );
+  }
+  function addFeature(label: string) {
+    if (!(FEATURE_LABELS as readonly string[]).includes(label)) return;
+    if (!property.isSample && !photos[selectedId]?.length) return;
+    setProperties((items) =>
+      items.map((p) =>
+        p.id === selectedId && !p.features.some((f) => f.label === label)
+          ? { ...p, features: [...p.features, { label, status: 'PENDING' }] }
+          : p,
+      ),
+    );
+  }
+  function removePicture(photoId: string) {
+    removePhoto(selectedId, photoId);
+    setProperties((items) =>
+      items.map((p) =>
+        p.id === selectedId
+          ? {
+              ...p,
+              features: p.features.map((f) =>
+                f.status === 'VERIFIED' ? { ...f, status: 'PENDING' } : f,
+              ),
+            }
+          : p,
+      ),
+    );
+    setDrafts((items) =>
+      items.map((d) =>
+        d.propertyId === selectedId ? { ...d, status: 'NEEDS_REVIEW' } : d,
+      ),
+    );
+    setAck(false);
+    setNotice(
+      'Picture removed. Reverify visible features before using them in content.',
+    );
   }
   function review(label: string, status: Feature['status']) {
     setProperties((items) =>
@@ -112,6 +167,8 @@ export function Workspace() {
     setNotice('Demo feedback recorded only in this tab.');
   }
   function reset() {
+    resetPhotos();
+    setResetVersion((version) => version + 1);
     setProperties(freshProperties());
     setSelectedId('willow');
     setDrafts([]);
@@ -130,25 +187,32 @@ export function Workspace() {
           <p className="eyebrow">TAKE THE WORKFLOW FOR A SPIN</p>
           <h2>Your next listing starts here.</h2>
           <p className="section-description">
-            Choose a sample property, verify a feature, and review the words.
+            Enter an address, optionally import pictures, then review your
+            draft.
           </p>
         </div>
         <button className="reset" onClick={reset}>
           Reset demo
         </button>
       </div>
+      <AddressIntake
+        key={resetVersion}
+        properties={properties}
+        open={openAddress}
+      />
       <div className="demo-disclosure">
         <span className="demo-tag">DEMO MODE</span>
         <p>
           Fictional properties, preloaded feature suggestions, and simulated
           generation. No real photos are analyzed, no accounts are created, and
-          nothing is sent to a server. Changes reset on reload.
+          nothing is sent to a server. Your entered addresses and imported
+          pictures stay in this tab. Changes reset on reload.
         </p>
       </div>
       <div className="workspace-frame">
         <aside className="property-sidebar">
           <div className="sidebar-heading">
-            <span>YOUR SAMPLE PROPERTIES</span>
+            <span>YOUR PROPERTIES & SAMPLES</span>
             <span>{properties.length}</span>
           </div>
           {properties.map((p) => (
@@ -159,18 +223,25 @@ export function Workspace() {
               aria-pressed={p.id === selectedId}
             >
               <div className={`tile-illustration ${p.id}`}>
-                <img src="./assets/home.svg" alt="" />
-                <span>FICTIONAL SAMPLE</span>
+                {p.isSample ? (
+                  <img src="./assets/home.svg" alt="" />
+                ) : (
+                  <div className="address-tile-icon">⌂</div>
+                )}
+                <span>{p.isSample ? 'FICTIONAL SAMPLE' : 'ADDRESS ONLY'}</span>
               </div>
               <div className="tile-body">
                 <strong>{p.name}</strong>
                 <span>
-                  {p.city}, {p.state}
+                  {p.isSample
+                    ? `${p.city}, ${p.state}`
+                    : 'Address entered by you'}
                 </span>
                 <b>{money(p.price)}</b>
                 <small>
-                  {p.bedrooms} bd <i>·</i> {p.bathrooms.toString()} ba <i>·</i>{' '}
-                  {p.squareFeet.toLocaleString()} sq ft
+                  {p.bedrooms ?? '—'} bd <i>·</i>{' '}
+                  {p.bathrooms?.toString() ?? '—'} ba <i>·</i>{' '}
+                  {p.squareFeet?.toLocaleString() ?? '—'} sq ft
                 </small>
               </div>
             </button>
@@ -193,11 +264,18 @@ export function Workspace() {
               <p className="eyebrow">PROPERTY WORKSPACE</p>
               <h3>{property.name}</h3>
               <span>
-                {property.address} · {property.city}, {property.state}{' '}
-                {property.zipCode}
+                {[
+                  property.address,
+                  property.city,
+                  [property.state, property.zipCode].filter(Boolean).join(' '),
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
               </span>
             </div>
-            <span className="pill sample-pill">FICTIONAL PROPERTY</span>
+            <span className="pill sample-pill">
+              {property.isSample ? 'FICTIONAL PROPERTY' : 'ADDRESS ENTERED'}
+            </span>
           </div>
           <div className="facts-bar">
             <div>
@@ -206,24 +284,40 @@ export function Workspace() {
             </div>
             <div>
               <span>BEDROOMS</span>
-              <strong>{property.bedrooms}</strong>
+              <strong>{property.bedrooms ?? '—'}</strong>
             </div>
             <div>
               <span>BATHROOMS</span>
-              <strong>{property.bathrooms.toString()}</strong>
+              <strong>{property.bathrooms?.toString() ?? '—'}</strong>
             </div>
             <div>
               <span>INTERIOR</span>
               <strong>
-                {property.squareFeet.toLocaleString()} <small>sq ft</small>
+                {property.squareFeet?.toLocaleString() ?? '—'}{' '}
+                <small>sq ft</small>
               </strong>
             </div>
             <div>
               <span>BUILT</span>
-              <strong>{property.yearBuilt}</strong>
+              <strong>{property.yearBuilt ?? '—'}</strong>
             </div>
           </div>
-          <EvidencePanel property={property} review={review} />
+          {!property.isSample && (
+            <p className="notice">
+              Address-only workspace: price, bedrooms, bathrooms, area, and year
+              built have not been looked up. Missing facts are excluded, not
+              filled with guesses.
+            </p>
+          )}
+          <EvidencePanel
+            key={property.id}
+            property={property}
+            review={review}
+            addFeature={addFeature}
+            photos={photos[selectedId] ?? []}
+            importFiles={(files) => importPhotos(selectedId, files)}
+            removePhoto={removePicture}
+          />
           <section className="workflow-panel">
             <div className="panel-heading">
               <span className="step-number">02</span>

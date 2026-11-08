@@ -17,12 +17,12 @@ export type GroundedContext = {
     city: string;
     state: string;
     zipCode: string;
-    price: string;
-    bedrooms: number;
-    bathrooms: string;
-    squareFeet: number;
-    propertyType: string;
-    yearBuilt: number;
+    price: string | null;
+    bedrooms: number | null;
+    bathrooms: string | null;
+    squareFeet: number | null;
+    propertyType: string | null;
+    yearBuilt: number | null;
     lotSize: string | null;
   };
   verifiedFeatures: string[];
@@ -31,8 +31,8 @@ export type GroundingProperty = Omit<
   GroundedContext['property'],
   'price' | 'bathrooms' | 'lotSize'
 > & {
-  price: { toString(): string };
-  bathrooms: { toString(): string };
+  price: { toString(): string } | null;
+  bathrooms: { toString(): string } | null;
   lotSize: { toString(): string } | null;
 };
 // Explicit projection: notes, pending detections, rejected detections, owner identity and storage metadata never cross this boundary.
@@ -46,9 +46,9 @@ export function buildContext(
       city: property.city,
       state: property.state,
       zipCode: property.zipCode,
-      price: property.price.toString(),
+      price: property.price?.toString() ?? null,
       bedrooms: property.bedrooms,
-      bathrooms: property.bathrooms.toString(),
+      bathrooms: property.bathrooms?.toString() ?? null,
       squareFeet: property.squareFeet,
       propertyType: property.propertyType,
       yearBuilt: property.yearBuilt,
