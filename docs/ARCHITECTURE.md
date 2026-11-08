@@ -56,3 +56,7 @@ A filesystem write cannot participate in a database transaction. Uploads authori
 Validation uses 400, unauthenticated requests 401, origin failures 403, missing/inaccessible owned resources 404, stale state 409, large bodies 413, bad media types 415, limits 429, unavailable AI configuration 503, and provider response/network failures 502. Unknown errors receive a safe message and correlation ID. No raw provider error, SQL connection string, password hash or API key is returned to the client.
 
 The current implementation has bounded pages but no cursor pagination, synchronous providers, and no durable job queue. These are explicit scale limits. Successful local tests do not establish performance at production scale.
+
+## Standalone portfolio demo
+
+`src/demo` is an isolated browser-only React entrypoint bundled with esbuild for free GitHub Pages hosting. It shares the pure evidence projection and claim validator with the server but never imports authentication, database, storage or live provider code. A bundling guard enforces that separation. Fictional sample data and deterministic generation are labeled in the UI; all interaction state is in memory. The static demo provides no security boundary for real property data and does not replace the authenticated application. See PORTFOLIO_DEMO.md for deployment and limitations.

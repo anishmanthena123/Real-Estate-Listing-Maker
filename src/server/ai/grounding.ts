@@ -1,4 +1,4 @@
-import type { Property, DetectedFeature } from '@prisma/client';
+import type { DetectedFeature } from '@prisma/client';
 export const FEATURE_LABELS = [
   'kitchen island',
   'stainless steel appliances',
@@ -27,9 +27,17 @@ export type GroundedContext = {
   };
   verifiedFeatures: string[];
 };
+export type GroundingProperty = Omit<
+  GroundedContext['property'],
+  'price' | 'bathrooms' | 'lotSize'
+> & {
+  price: { toString(): string };
+  bathrooms: { toString(): string };
+  lotSize: { toString(): string } | null;
+};
 // Explicit projection: notes, pending detections, rejected detections, owner identity and storage metadata never cross this boundary.
 export function buildContext(
-  property: Property,
+  property: GroundingProperty,
   features: Pick<DetectedFeature, 'label' | 'status'>[],
 ): GroundedContext {
   return {

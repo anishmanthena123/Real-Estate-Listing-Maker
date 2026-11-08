@@ -55,3 +55,7 @@ One process can serve this initial application. It has finite history/list sizes
 ## Dependency audit scope
 
 The production dependency graph reports no advisories after the configuration-tool patch. Vitest was upgraded to resolve critical test-tool findings. Moderate minimatch advisories remain under development lint tooling. Tooling operates on trusted repository files in CI/local development and must not be exposed as a network service. This reduces exposure but does not erase the advisories; continue tracking upstream patches and avoid unsupported forced version changes.
+
+## Free reviewer-facing demonstration
+
+A separate static entrypoint lets portfolio reviewers explore the central grounding/review workflow without creating accounts or paying for model calls. It reuses the production context builder and validator rather than maintaining weaker duplicate rules. This deliberately trades real AI, persistence and authentication for zero-backend hosting. The full application remains unchanged apart from a structural input type for the pure context builder. The demo labels its fictional fixtures, fixed suggestions and local generation, and makes no claim to be a deployed live-AI product.

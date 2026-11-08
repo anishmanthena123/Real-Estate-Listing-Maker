@@ -20,7 +20,10 @@
     "db:migrate:sql": "tsx scripts/apply-migrations.ts",
     "test:e2e": "playwright test",
     "db:test:migrate": "tsx scripts/migrate-test.ts",
-    "start:production": "tsx scripts/start-production.ts"
+    "start:production": "tsx scripts/start-production.ts",
+    "demo:build": "tsx scripts/build-demo.ts",
+    "demo:preview": "tsx scripts/serve-demo.ts",
+    "demo:test": "playwright test --config playwright.demo.config.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^6.19.3",
@@ -40,6 +43,7 @@
     "@types/pg": "^8.23.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "esbuild": "^0.28.2",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.4",
     "prettier": "^3.9.10",

@@ -2,6 +2,26 @@
 
 AI-assisted real-estate marketing platform that grounds generated content in structured property data and verified visual features while detecting unsupported AI-generated property claims.
 
+## Free interactive portfolio website
+
+The repository includes a standalone, responsive demo for GitHub Pages, with fictional sample properties and no login or API key. Visitors can verify/reject features, inspect the generation context, generate deterministic drafts, edit claims, mark reviewed content ready, and explore session history.
+
+**After Pages is enabled and deployment succeeds:** [Open the portfolio demo](https://anishmanthena123.github.io/Real-Estate-Listing-Maker/).
+
+To activate free hosting, choose **Settings → Pages → Source → GitHub Actions** in this repository, then run **Actions → Deploy portfolio demo → Run workflow**. See [Portfolio demo setup](docs/PORTFOLIO_DEMO.md). This is separate from the optional paid Render deployment of the full backend.
+
+The demo reuses the full application's context builder and claim validator. It does not claim to run live AI, analyze actual photos, authenticate users, or persist their data. Its illustrations and property records are fictional; counters reflect only interactions in the current tab. The full Next.js/PostgreSQL application remains in this repository.
+
+```bash
+npm ci
+npm run demo:build
+npm run demo:preview
+# Optional: test the standalone demo in desktop/mobile Chromium
+npm run demo:test
+```
+
+![Interactive portfolio demo](docs/screenshots/demo-desktop.png)
+
 ## Problem
 
 A fluent property description can invent a renovation, overstate a material, or assert that a neighborhood is safe. A model seeing an island in a photo does not establish that the kitchen was renovated. Marketing teams need traceable evidence and an explicit review process, not just a better prompt.
@@ -12,13 +32,13 @@ Listly separates observation, verification, generation, claim checks, and human 
 
 The application supports property CRUD, private multi-photo uploads, photo analysis, six content types, style/length selection, an editable review workspace, generation history, revision-aware feedback, and a dashboard based on actual database counts.
 
-## Put the app online
+## Deploy the full backend (optional)
 
 Deploy this same repository as a full-stack app using the [Render setup guide](docs/RENDER_SETUP.md). The included blueprint provisions PostgreSQL and persistent photos and enables live AI after you enter a server-side API key. Hosting and API usage have separate costs; review pricing before provisioning.
 
-## Demo
+## Full-app local demo
 
-There is no published demo or claimed customer usage. Run the local setup below and create an account. `MOCK_AI=true` makes the complete workflow usable without a paid API or API key. Mock photo analysis returns fixed sample suggestions and **does not inspect the photo**. Its conservative, template-based copy intentionally tests the workflow rather than simulating natural writing quality or style fidelity.
+The authenticated backend has not been publicly deployed, and no customer usage is claimed. For the separate free portfolio website, use the GitHub Pages instructions above. To run the complete app locally, follow the setup below and create an account. `MOCK_AI=true` makes the complete workflow usable without a paid API or API key. Mock photo analysis returns fixed sample suggestions and **does not inspect the photo**. Its conservative, template-based copy intentionally tests the workflow rather than simulating natural writing quality or style fidelity.
 
 Try this flow:
 
