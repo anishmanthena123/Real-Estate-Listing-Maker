@@ -39,7 +39,7 @@ export function failure(error: unknown) {
   );
 }
 export async function boundedBody(
-  request: Request,
+  request: Pick<Request, 'headers' | 'body'>,
   max: number,
 ): Promise<Uint8Array> {
   if (Number(request.headers.get('content-length') ?? 0) > max)

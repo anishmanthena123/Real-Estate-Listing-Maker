@@ -48,6 +48,24 @@ export function PhotoWorkflow({
           They are demonstration data, never verified facts.
         </p>
       )}
+      {property.photos?.some((photo) => !photo.analyzedAt) && (
+        <button
+          className="primary batch-analyze"
+          disabled={busy}
+          onClick={() =>
+            void run(async () => {
+              for (const photo of property.photos?.filter(
+                (photo) => !photo.analyzedAt,
+              ) ?? [])
+                await api(`properties/${property.id}/analyze/${photo.id}`, {
+                  method: 'POST',
+                });
+            })
+          }
+        >
+          {busy ? 'Processing photos…' : 'Analyze all photos'}
+        </button>
+      )}
       <label className="upload">
         {busy ? 'Processing…' : '+ Upload property photos'}
         <input

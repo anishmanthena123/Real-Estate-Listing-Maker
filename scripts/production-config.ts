@@ -31,6 +31,13 @@ export function productionConfig(
     throw new Error(
       'Set AI_API_KEY securely in your hosting environment before enabling live AI.',
     );
+  const lookupProvider = env.PROPERTY_LOOKUP_PROVIDER ?? 'disabled';
+  if (!['disabled', 'attom'].includes(lookupProvider))
+    throw new Error('PROPERTY_LOOKUP_PROVIDER must be disabled or attom.');
+  if (lookupProvider === 'attom' && !env.ATTOM_API_KEY?.trim())
+    throw new Error(
+      'Set ATTOM_API_KEY securely in your hosting environment before enabling lookup.',
+    );
   const port = env.PORT ?? '10000';
   if (!/^\d+$/.test(port) || Number(port) < 1 || Number(port) > 65535)
     throw new Error('PORT must be between 1 and 65535.');
@@ -47,6 +54,7 @@ export function productionConfig(
     NODE_ENV: 'production',
     APP_ORIGIN: origin.origin,
     MOCK_AI: mock,
+    PROPERTY_LOOKUP_PROVIDER: lookupProvider,
     PORT: port,
     ALLOW_LOCAL_HTTP: 'false',
     STORAGE_DIR: env.STORAGE_DIR || '.data/photos',

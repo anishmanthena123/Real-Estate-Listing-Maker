@@ -7,6 +7,8 @@ const schema = z.object({
   AI_BASE_URL: z.url().default('https://api.openai.com/v1'),
   AI_MODEL: z.string().min(1).default('gpt-4o-mini'),
   AI_API_KEY: z.string().optional(),
+  PROPERTY_LOOKUP_PROVIDER: z.enum(['disabled', 'attom']).default('disabled'),
+  ATTOM_API_KEY: z.string().optional(),
   STORAGE_DIR: z.string().min(1).default('.data/photos'),
 });
 export function getEnv() {

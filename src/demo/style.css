@@ -1602,3 +1602,96 @@ footer > a:last-child {
   font-size: 40px;
   color: #8da77c;
 }
+.journey-nav {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 20px 0;
+}
+.journey-nav button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  font-size: 11px;
+  padding: 13px;
+}
+.journey-nav button span {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 23px;
+  height: 23px;
+  background: #eff4e9;
+  border-radius: 50%;
+  font-size: 10px;
+}
+.journey-nav button[aria-current='step'] {
+  background: #e5eedb;
+  border-color: #8da779;
+}
+.workspace-frame {
+  display: block;
+}
+.property-browser {
+  padding: 14px 20px;
+  background: #f4f7ef;
+  border-bottom: 1px solid #dfe6df;
+}
+.property-browser > summary {
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  color: #607c51;
+}
+.property-browser .property-sidebar {
+  border: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  padding: 18px 0 0;
+}
+.property-browser .sidebar-heading,
+.property-browser .session-summary {
+  grid-column: 1/-1;
+}
+.property-browser .property-tile {
+  margin: 0;
+}
+.step-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin: 20px 0;
+}
+.sample-address {
+  margin-top: 14px;
+  font-size: 10px;
+  background: transparent;
+  color: #5d7e4a;
+}
+[hidden] {
+  display: none !important;
+}
+@media (max-width: 760px) {
+  .journey-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+  .journey-nav button {
+    font-size: 9px;
+    padding: 10px 8px;
+    gap: 6px;
+  }
+  .property-browser {
+    padding: 13px;
+  }
+  .step-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .property-browser .property-sidebar {
+    gap: 9px;
+  }
+}

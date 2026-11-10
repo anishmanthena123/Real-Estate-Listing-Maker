@@ -137,6 +137,7 @@ afterAll(async () => {
         { key: `generate:${id}` },
         { key: `analyze:${id}` },
         { key: `upload:${id}` },
+        { key: `lookup:${id}` },
       ]),
     },
   });
@@ -152,7 +153,7 @@ describe('ownership enforced at the service boundary', () => {
     await expect(
       service.update(a, propertyId, { ...input, price: 1 }),
     ).rejects.toMatchObject({ status: 404 });
-    expect((await service.get(b, propertyId)).price.toString()).toBe('450000');
+    expect((await service.get(b, propertyId)).price?.toString()).toBe('450000');
   });
   it('A cannot delete B property', async () => {
     await expect(service.remove(a, propertyId)).rejects.toMatchObject({
@@ -522,5 +523,114 @@ describe('HTTP boundary and sessions', () => {
     await expect(
       authenticate({ email, password: 'wrong-long-password' }, false),
     ).rejects.toMatchObject({ status: 401 });
+  });
+});
+
+describe('address-only persistence and lookup HTTP boundaries', () => {
+  it('saves unknown facts as null and generates no invented numeric facts', async () => {
+    const own = await service.create(a, {
+      address: '900 Test Avenue',
+      city: 'Austin',
+      state: 'TX',
+      zipCode: '78701',
+    });
+    expect(own.price).toBeNull();
+    expect(own.bedrooms).toBeNull();
+    const generated = await service.generate(a, own.id, options);
+    expect(generated.text).toBe(
+      'Located at 900 Test Avenue, Austin, TX 78701.',
+    );
+    expect(generated.claims.every((c) => c.status === 'SUPPORTED')).toBe(true);
+  });
+  it('lookup requires a valid session before any provider request', async () => {
+    expect(
+      (
+        await route(
+          'property-lookup',
+          'POST',
+          { address: '123 Oak Street, Austin, TX 78701' },
+          'forged',
+        )
+      ).status,
+    ).toBe(401);
+  });
+  it('lookup rejects cross-origin requests', async () => {
+    expect(
+      (
+        await route(
+          'property-lookup',
+          'POST',
+          { address: '123 Oak Street, Austin, TX 78701' },
+          token,
+          'https://evil.example',
+        )
+      ).status,
+    ).toBe(403);
+  });
+  it('lookup validates incomplete addresses safely', async () => {
+    expect(
+      (await route('property-lookup', 'POST', { address: '123 Oak Street' }))
+        .status,
+    ).toBe(400);
+  });
+  it('disabled lookup returns a configuration error without fabricating a record', async () => {
+    const before = process.env.PROPERTY_LOOKUP_PROVIDER;
+    process.env.PROPERTY_LOOKUP_PROVIDER = 'disabled';
+    try {
+      const result = await route('property-lookup', 'POST', {
+        address: '123 Oak Street, Austin, TX 78701',
+        userId: b,
+      });
+      expect(result.status).toBe(503);
+      expect(await service.list(a)).toEqual([]);
+    } finally {
+      if (before === undefined) delete process.env.PROPERTY_LOOKUP_PROVIDER;
+      else process.env.PROPERTY_LOOKUP_PROVIDER = before;
+    }
+  });
+});
+
+describe('configured lookup request through authenticated HTTP', () => {
+  it('returns sanitized suggestions without saving a property or exposing the provider key', async () => {
+    const priorProvider = process.env.PROPERTY_LOOKUP_PROVIDER;
+    const priorKey = process.env.ATTOM_API_KEY;
+    process.env.PROPERTY_LOOKUP_PROVIDER = 'attom';
+    process.env.ATTOM_API_KEY = 'server-only-fixture-key';
+    const fetcher = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      Response.json({
+        property: [
+          {
+            address: {
+              line1: '123 OAK ST',
+              locality: 'Austin',
+              countrySubd: 'TX',
+              postal1: '78701',
+            },
+            building: { rooms: { beds: 3 } },
+          },
+        ],
+      }),
+    );
+    try {
+      const response = await route('property-lookup', 'POST', {
+        address: '123 Oak Street, Austin, TX 78701',
+        userId: b,
+      });
+      expect(response.status).toBe(200);
+      const result = await response.json();
+      expect(result.source).toBe('ATTOM');
+      expect(result.requiresReview).toBe(true);
+      expect(result.suggestedFacts.price).toBeNull();
+      expect(JSON.stringify(result)).not.toContain('server-only-fixture-key');
+      expect(await service.list(a)).toEqual([]);
+      expect(fetcher).toHaveBeenCalledOnce();
+    } finally {
+      fetcher.mockRestore();
+      if (priorProvider === undefined)
+        delete process.env.PROPERTY_LOOKUP_PROVIDER;
+      else process.env.PROPERTY_LOOKUP_PROVIDER = priorProvider;
+      if (priorKey === undefined) delete process.env.ATTOM_API_KEY;
+      else process.env.ATTOM_API_KEY = priorKey;
+    }
   });
 });

@@ -7,23 +7,27 @@ export const propertySchema = z.object({
   city: text(100),
   state: text(100),
   zipCode: text(20),
-  price: z.number().finite().min(0).max(999999999999),
-  bedrooms: z.number().int().min(0).max(100),
-  bathrooms: z.number().min(0).max(100).multipleOf(0.1),
-  squareFeet: z.number().int().min(0).max(10000000),
-  propertyType: z.enum([
-    'House',
-    'Condo',
-    'Townhouse',
-    'Multi-family',
-    'Land',
-    'Other',
-  ]),
+  price: z.number().finite().min(0).max(999999999999).nullable().default(null),
+  bedrooms: z.number().int().min(0).max(100).nullable().default(null),
+  bathrooms: z
+    .number()
+    .min(0)
+    .max(100)
+    .multipleOf(0.1)
+    .nullable()
+    .default(null),
+  squareFeet: z.number().int().min(0).max(10000000).nullable().default(null),
+  propertyType: z
+    .enum(['House', 'Condo', 'Townhouse', 'Multi-family', 'Land', 'Other'])
+    .nullable()
+    .default(null),
   yearBuilt: z
     .number()
     .int()
     .min(1600)
-    .max(new Date().getUTCFullYear() + 5),
+    .max(new Date().getUTCFullYear() + 5)
+    .nullable()
+    .default(null),
   lotSize: z.number().min(0).max(999999999999).nullable().optional(),
   notes: z.string().trim().max(5000).default(''),
   status: z.enum(['DRAFT', 'ACTIVE', 'SOLD', 'ARCHIVED']).default('DRAFT'),

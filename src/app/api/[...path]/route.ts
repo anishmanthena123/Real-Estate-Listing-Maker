@@ -1,3 +1,9 @@
+import { z } from 'zod';
+import {
+  getLookupProvider,
+  parseLookupAddress,
+} from '@/server/lookup/provider';
+import { parse } from '@/server/validation';
 import {
   authenticate,
   checkOrigin,
@@ -46,6 +52,15 @@ async function handle(request: Request, context: Context) {
       const token = cookieValue(request);
       if (token) await db.session.deleteMany({ where: { id: digest(token) } });
       return json({ ok: true }, 200, { 'Set-Cookie': sessionCookie('', true) });
+    }
+    if (root === 'property-lookup' && path.length === 1 && method === 'POST') {
+      const { address } = parse(
+        z.object({ address: z.string().trim().min(5).max(300) }),
+        await readJson(request),
+      );
+      parseLookupAddress(address);
+      await rateLimit(`lookup:${user.id}`, 20, 3600000);
+      return json(await getLookupProvider().lookup(address));
     }
     if (path.length === 1 && root === 'me' && method === 'GET')
       return json({ user, mockAI: getEnv().MOCK_AI === 'true' });

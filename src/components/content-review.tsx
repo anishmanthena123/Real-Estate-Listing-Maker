@@ -9,12 +9,16 @@ import {
 } from './types';
 export function ContentReview({
   property,
+  initialGenerationId,
   refresh,
 }: {
   property: Property;
+  initialGenerationId?: string | null;
   refresh: () => Promise<void>;
 }) {
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(
+    initialGenerationId ?? null,
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const generations = property.generations ?? [];
@@ -116,8 +120,9 @@ export function ContentReview({
             ))}
           </aside>
           <Editor
-            key={`${current.id}:${current.revision}:${property.evidenceVersion}`}
+            key={`${current.id}:${current.revision}`}
             generation={current}
+            evidenceVersion={property.evidenceVersion}
             propertyId={property.id}
             refresh={refresh}
           />
@@ -133,10 +138,12 @@ export function ContentReview({
 }
 function Editor({
   generation,
+  evidenceVersion,
   propertyId,
   refresh,
 }: {
   generation: Generation;
+  evidenceVersion: number;
   propertyId: string;
   refresh: () => Promise<void>;
 }) {
@@ -149,6 +156,7 @@ function Editor({
   const [comment, setComment] = useState('');
   const flagged = generation.claims.filter((c) => c.status !== 'SUPPORTED');
   const dirty = text !== generation.text;
+  const staleEvidence = generation.evidenceVersion !== evidenceVersion;
   async function save(status: string) {
     setBusy(true);
     setError('');
@@ -213,6 +221,12 @@ function Editor({
         maxLength={12000}
         rows={12}
       />
+      {staleEvidence && (
+        <p className="notice">
+          Property evidence changed. Your edits are preserved; save and validate
+          against the new facts before marking ready.
+        </p>
+      )}
       {dirty && (
         <p className="notice">
           Unsaved edits. Save to rerun validation; the claims below refer to the
@@ -292,7 +306,11 @@ function Editor({
         <button
           className="primary"
           disabled={
-            busy || !ack || !text.trim() || (!dirty && flagged.length > 0)
+            busy ||
+            !ack ||
+            staleEvidence ||
+            !text.trim() ||
+            (!dirty && flagged.length > 0)
           }
           onClick={() => void save('READY')}
         >

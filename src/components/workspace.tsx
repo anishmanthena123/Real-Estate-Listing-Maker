@@ -3,8 +3,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { AuthForm } from './auth-form';
 import { PropertyForm } from './property-form';
-import { PhotoWorkflow } from './photo-workflow';
-import { ContentReview } from './content-review';
+import { PropertyWorkflow } from './property-workflow';
 import {
   api,
   contentLabels,
@@ -20,6 +19,9 @@ export function Workspace() {
   const [list, setList] = useState<Property[]>([]);
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [property, setProperty] = useState<Property | null>(null);
+  const [preferredGeneration, setPreferredGeneration] = useState<string | null>(
+    null,
+  );
   const [form, setForm] = useState<'new' | 'edit' | null>(null);
   const [view, setView] = useState<'dashboard' | 'properties'>('dashboard');
   const refresh = useCallback(async () => {
@@ -47,8 +49,9 @@ export function Workspace() {
       })
       .finally(() => setLoading(false));
   }, [refresh]);
-  async function open(id: string) {
+  async function open(id: string, generationId: string | null = null) {
     setError('');
+    setPreferredGeneration(generationId);
     try {
       setProperty(await api<Property>(`properties/${id}`));
       setForm(null);
@@ -208,9 +211,10 @@ export function Workspace() {
                   <span className="badge">{property.status}</span>
                   <h2>{money(property.price)}</h2>
                   <p>
-                    {property.bedrooms} beds · {property.bathrooms} baths ·{' '}
-                    {property.squareFeet.toLocaleString()} sq ft ·{' '}
-                    {property.propertyType}
+                    {property.bedrooms ?? '—'} beds ·{' '}
+                    {property.bathrooms ?? '—'} baths ·{' '}
+                    {property.squareFeet?.toLocaleString() ?? '—'} sq ft ·{' '}
+                    {property.propertyType ?? 'Type not supplied'}
                   </p>
                 </div>
                 <div className="actions">
@@ -221,18 +225,14 @@ export function Workspace() {
                   </button>
                 </div>
               </div>
-              <div className="workflow-strip">
-                <span>01 Property facts</span>
-                <span>02 Verify photos</span>
-                <span>03 Generate</span>
-                <span>04 Review claims</span>
-              </div>
-              <PhotoWorkflow
+              <PropertyWorkflow
+                key={property.id}
                 property={property}
+                initialGenerationId={preferredGeneration}
                 refresh={refreshProperty}
                 mock={account.mockAI}
+                edit={() => setForm('edit')}
               />
-              <ContentReview property={property} refresh={refreshProperty} />
             </>
           ) : (
             <>
@@ -293,8 +293,9 @@ export function Workspace() {
                             </p>
                             <strong>{money(item.price)}</strong>
                             <p>
-                              {item.bedrooms} bd · {item.bathrooms} ba ·{' '}
-                              {item.squareFeet.toLocaleString()} sq ft
+                              {item.bedrooms ?? '—'} bd ·{' '}
+                              {item.bathrooms ?? '—'} ba ·{' '}
+                              {item.squareFeet?.toLocaleString() ?? '—'} sq ft
                             </p>
                             <div className="property-card-footer">
                               <span>{item._count?.photos ?? 0} photos</span>
@@ -332,7 +333,7 @@ export function Workspace() {
                       <button
                         className="recent-row"
                         key={g.id}
-                        onClick={() => void open(g.propertyId)}
+                        onClick={() => void open(g.propertyId, g.id)}
                       >
                         <div>
                           <strong>{contentLabels[g.contentType]}</strong>

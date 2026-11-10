@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { JourneyNav } from '../components/journey-nav';
 import {
   freshProperties,
   generateDemo,
@@ -21,6 +22,8 @@ const money = (value: { toString(): string } | null) =>
         maximumFractionDigits: 0,
       }).format(Number(value.toString()));
 export function Workspace() {
+  const [step, setStep] = useState(0);
+  const [started, setStarted] = useState(false);
   const [properties, setProperties] =
     useState<SampleProperty[]>(freshProperties);
   const { photos, importPhotos, removePhoto, resetPhotos } = useLocalPhotos();
@@ -39,6 +42,8 @@ export function Workspace() {
   const active = drafts.find((d) => d.id === activeId);
   const verified = property.features.filter((f) => f.status === 'VERIFIED');
   function select(id: string) {
+    setStep(1);
+    setStarted(true);
     setSelectedId(id);
     const draft = drafts.find((d) => d.propertyId === id);
     setActiveId(draft?.id ?? null);
@@ -117,6 +122,7 @@ export function Workspace() {
     );
   }
   function generate() {
+    setStep(3);
     const generated = generateDemo(property, length, type);
     const id = drafts.reduce((max, d) => Math.max(max, d.id), 0) + 1;
     setDrafts((items) => [
@@ -168,6 +174,8 @@ export function Workspace() {
   }
   function reset() {
     resetPhotos();
+    setStep(0);
+    setStarted(false);
     setResetVersion((version) => version + 1);
     setProperties(freshProperties());
     setSelectedId('willow');
@@ -195,11 +203,24 @@ export function Workspace() {
           Reset demo
         </button>
       </div>
-      <AddressIntake
-        key={resetVersion}
-        properties={properties}
-        open={openAddress}
+      <JourneyNav
+        labels={[
+          'Address',
+          'Photos & features',
+          'Create draft',
+          'Review & save',
+        ]}
+        step={step}
+        onChange={setStep}
+        enabled={[true, started, started, Boolean(active)]}
       />
+      <div hidden={step !== 0}>
+        <AddressIntake
+          key={resetVersion}
+          properties={properties}
+          open={openAddress}
+        />
+      </div>
       <div className="demo-disclosure">
         <span className="demo-tag">DEMO MODE</span>
         <p>
@@ -210,55 +231,60 @@ export function Workspace() {
         </p>
       </div>
       <div className="workspace-frame">
-        <aside className="property-sidebar">
-          <div className="sidebar-heading">
-            <span>YOUR PROPERTIES & SAMPLES</span>
-            <span>{properties.length}</span>
-          </div>
-          {properties.map((p) => (
-            <button
-              key={p.id}
-              className={`property-tile ${p.id === selectedId ? 'selected' : ''}`}
-              onClick={() => select(p.id)}
-              aria-pressed={p.id === selectedId}
-            >
-              <div className={`tile-illustration ${p.id}`}>
-                {p.isSample ? (
-                  <img src="./assets/home.svg" alt="" />
-                ) : (
-                  <div className="address-tile-icon">⌂</div>
-                )}
-                <span>{p.isSample ? 'FICTIONAL SAMPLE' : 'ADDRESS ONLY'}</span>
-              </div>
-              <div className="tile-body">
-                <strong>{p.name}</strong>
-                <span>
-                  {p.isSample
-                    ? `${p.city}, ${p.state}`
-                    : 'Address entered by you'}
-                </span>
-                <b>{money(p.price)}</b>
-                <small>
-                  {p.bedrooms ?? '—'} bd <i>·</i>{' '}
-                  {p.bathrooms?.toString() ?? '—'} ba <i>·</i>{' '}
-                  {p.squareFeet?.toLocaleString() ?? '—'} sq ft
-                </small>
-              </div>
-            </button>
-          ))}
-          <div className="session-summary">
-            <span>THIS DEMO SESSION</span>
-            <div>
-              <b>{drafts.length}</b> drafts generated
+        <details className="property-browser">
+          <summary>Switch property or explore a sample</summary>
+          <aside className="property-sidebar">
+            <div className="sidebar-heading">
+              <span>YOUR PROPERTIES & SAMPLES</span>
+              <span>{properties.length}</span>
             </div>
-            <div>
-              <b>{drafts.filter((d) => d.status === 'READY').length}</b> marked
-              ready
+            {properties.map((p) => (
+              <button
+                key={p.id}
+                className={`property-tile ${p.id === selectedId ? 'selected' : ''}`}
+                onClick={() => select(p.id)}
+                aria-pressed={p.id === selectedId}
+              >
+                <div className={`tile-illustration ${p.id}`}>
+                  {p.isSample ? (
+                    <img src="./assets/home.svg" alt="" />
+                  ) : (
+                    <div className="address-tile-icon">⌂</div>
+                  )}
+                  <span>
+                    {p.isSample ? 'FICTIONAL SAMPLE' : 'ADDRESS ONLY'}
+                  </span>
+                </div>
+                <div className="tile-body">
+                  <strong>{p.name}</strong>
+                  <span>
+                    {p.isSample
+                      ? `${p.city}, ${p.state}`
+                      : 'Address entered by you'}
+                  </span>
+                  <b>{money(p.price)}</b>
+                  <small>
+                    {p.bedrooms ?? '—'} bd <i>·</i>{' '}
+                    {p.bathrooms?.toString() ?? '—'} ba <i>·</i>{' '}
+                    {p.squareFeet?.toLocaleString() ?? '—'} sq ft
+                  </small>
+                </div>
+              </button>
+            ))}
+            <div className="session-summary">
+              <span>THIS DEMO SESSION</span>
+              <div>
+                <b>{drafts.length}</b> drafts generated
+              </div>
+              <div>
+                <b>{drafts.filter((d) => d.status === 'READY').length}</b>{' '}
+                marked ready
+              </div>
+              <p>These counts reflect only your interactions in this tab.</p>
             </div>
-            <p>These counts reflect only your interactions in this tab.</p>
-          </div>
-        </aside>
-        <div className="property-workspace">
+          </aside>
+        </details>
+        <div className="property-workspace" hidden={!started || step === 0}>
           <div className="property-title">
             <div>
               <p className="eyebrow">PROPERTY WORKSPACE</p>
@@ -309,18 +335,28 @@ export function Workspace() {
               filled with guesses.
             </p>
           )}
-          <EvidencePanel
-            key={property.id}
-            property={property}
-            review={review}
-            addFeature={addFeature}
-            photos={photos[selectedId] ?? []}
-            importFiles={(files) => importPhotos(selectedId, files)}
-            removePhoto={removePicture}
-          />
-          <section className="workflow-panel">
+          <div hidden={step !== 1}>
+            <EvidencePanel
+              key={property.id}
+              property={property}
+              review={review}
+              addFeature={addFeature}
+              photos={photos[selectedId] ?? []}
+              importFiles={(files) => importPhotos(selectedId, files)}
+              removePhoto={removePicture}
+            />
+            <div className="step-actions">
+              <span className="hint">
+                Pictures are optional. Verify only features you can confirm.
+              </span>
+              <button className="primary" onClick={() => setStep(2)}>
+                Continue to draft →
+              </button>
+            </div>
+          </div>
+          <section className="workflow-panel" hidden={step !== 2}>
             <div className="panel-heading">
-              <span className="step-number">02</span>
+              <span className="step-number">03</span>
               <div>
                 <h4>Build a grounded first draft.</h4>
                 <p>
@@ -379,51 +415,54 @@ export function Workspace() {
               variations require the full app’s provider.
             </p>
           </section>
-          <ReviewPanel
-            property={property}
-            active={active}
-            text={text}
-            setText={setText}
-            ack={ack}
-            setAck={setAck}
-            setError={setError}
-            save={save}
-            feedback={feedback}
-            error={error}
-            notice={notice}
-          />
-          {drafts.some((d) => d.propertyId === selectedId) && (
-            <section className="history-panel">
-              <h4>
-                Generation history <span>THIS TAB ONLY</span>
-              </h4>
-              {drafts
-                .filter((d) => d.propertyId === selectedId)
-                .map((d) => (
-                  <button
-                    key={d.id}
-                    className={activeId === d.id ? 'active' : ''}
-                    onClick={() => {
-                      setActiveId(d.id);
-                      setText(d.text);
-                      setAck(false);
-                      setError('');
-                      setNotice('');
-                    }}
-                  >
-                    <span>
-                      #{d.id} <strong>{d.type}</strong>
-                      <small>
-                        {d.style} · {d.length}
-                      </small>
-                    </span>
-                    <span className={`badge ${d.status.toLowerCase()}`}>
-                      {d.status.replaceAll('_', ' ')}
-                    </span>
-                  </button>
-                ))}
-            </section>
-          )}
+          <div hidden={step !== 3}>
+            <ReviewPanel
+              property={property}
+              active={active}
+              text={text}
+              setText={setText}
+              ack={ack}
+              setAck={setAck}
+              setError={setError}
+              save={save}
+              feedback={feedback}
+              error={error}
+              notice={notice}
+            />
+            {drafts.some((d) => d.propertyId === selectedId) && (
+              <section className="history-panel">
+                <h4>
+                  Generation history <span>THIS TAB ONLY</span>
+                </h4>
+                {drafts
+                  .filter((d) => d.propertyId === selectedId)
+                  .map((d) => (
+                    <button
+                      key={d.id}
+                      className={activeId === d.id ? 'active' : ''}
+                      onClick={() => {
+                        setActiveId(d.id);
+                        setText(d.text);
+                        setAck(false);
+                        setError('');
+                        setNotice('');
+                      }}
+                    >
+                      <span>
+                        #{d.id} <strong>{d.type}</strong>
+                        <small>
+                          {d.style} · {d.length}
+                        </small>
+                      </span>
+                      <span className={`badge ${d.status.toLowerCase()}`}>
+                        {d.status.replaceAll('_', ' ')}
+                      </span>
+                    </button>
+                  ))}
+              </section>
+            )}
+            <button onClick={() => setStep(1)}>← Back to photos</button>
+          </div>
         </div>
       </div>
       <p className="workspace-disclaimer">

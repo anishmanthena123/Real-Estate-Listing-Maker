@@ -5,7 +5,7 @@ This uses the existing `anishmanthena123/Real-Estate-Listing-Maker` repository. 
 ## What you need
 
 - A Render account connected to your GitHub account, with access to this repository.
-- An API key for an OpenAI API project with billing/credits available. A ChatGPT subscription does not supply API credits. Create/manage the key at https://platform.openai.com/api-keys and review billing there.
+- An API key for an OpenAI API project with billing/credits available, plus an ATTOM Property API key for automatic address lookup. See LIVE_APIS.md. A ChatGPT subscription does not supply API credits. Create/manage the key at https://platform.openai.com/api-keys and review billing there.
 - A hosting budget. This blueprint selects a paid Starter web service, a paid database, and a persistent disk. Render displays current pricing before you create resources. Review that total yourself; no paid resources have been created by this task. AI usage is billed separately by the provider.
 
 ## Deploy from GitHub
@@ -13,7 +13,7 @@ This uses the existing `anishmanthena123/Real-Estate-Listing-Maker` repository. 
 1. Create an account at https://render.com using GitHub. Authorize access to `Real-Estate-Listing-Maker` when asked.
 2. Open https://render.com/deploy?repo=https://github.com/anishmanthena123/Real-Estate-Listing-Maker or choose **New → Blueprint** in Render and select this repository's `main` branch. Render should detect `render.yaml` at the repository root.
 3. Review the proposed `listly-ai` web service, `listly-db` database, and persistent photo disk. Review the region and pricing. If a service name is already used, choose an available name in the blueprint review; the application uses the assigned Render URL automatically.
-4. When prompted for `AI_API_KEY`, enter your provider key securely in Render. Never put it in GitHub, a screenshot, an issue, or chat. The app is configured with `MOCK_AI=false`, `AI_BASE_URL=https://api.openai.com/v1`, and `AI_MODEL=gpt-4o-mini`. If your account requires a different vision-capable chat-completions model, change `AI_MODEL` in Render before deployment.
+4. When prompted for `AI_API_KEY` and `ATTOM_API_KEY`, enter each provider key securely in Render. The keys are for different services. Set `PROPERTY_LOOKUP_PROVIDER=disabled` if you want to deploy without automatic lookup; address-only entry still works. Never put it in GitHub, a screenshot, an issue, or chat. The blueprint enables ATTOM lookup and configures `MOCK_AI=false`, `AI_BASE_URL=https://api.openai.com/v1`, and `AI_MODEL=gpt-4o-mini`. If your account requires a different vision-capable chat-completions model, change `AI_MODEL` in Render before deployment.
 5. Approve creation only after you accept Render's displayed costs. Wait for the database and web service to finish deploying. The web startup validates configuration, checks private storage, applies committed migrations, and starts the application on Render's assigned port.
 6. Open the HTTPS `.onrender.com` URL shown on the web service page when its status is **Live**. That URL is your website. Create your agent account, add a property, upload a photo, and analyze it. Confirm that new suggestions are PENDING, explicitly verify one, then generate and review a draft.
 
@@ -46,3 +46,7 @@ If you add a custom domain, configure that domain in Render, wait for HTTPS to b
 ## Scope of verification
 
 Repository tests and local production-startup checks are performed before pushing this setup. Render account creation, paid provisioning, Render-side blueprint validation, public URL reachability, and live AI calls require your hosting account and provider key and are not established merely by adding these files. The security and AI-validation limitations in README.md and docs/AI_SAFETY.md still apply. Public registration lacks email verification, password recovery and MFA; address those before broad public onboarding.
+
+## Address lookup and guided UI
+
+Follow [LIVE_APIS.md](LIVE_APIS.md) for both keys, request/data limitations, and the simplified address → photos → content workflow. Unknown facts are now nullable in the database, so the latest migration must be applied. The production entrypoint applies it automatically before listening. Do not enable live-provider flags without their required keys; startup validation will stop with an actionable configuration error.

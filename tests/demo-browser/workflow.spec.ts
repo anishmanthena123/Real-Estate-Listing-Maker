@@ -18,6 +18,12 @@ test('visitor explores the static demo, verifies evidence and reviews unsupporte
     }),
   ).toBeVisible();
   await page.getByRole('link', { name: 'Explore the workspace' }).click();
+  await page
+    .getByRole('button', {
+      name: 'Try a fictional sample address',
+      exact: true,
+    })
+    .click();
   const island = page
     .locator('.feature-row')
     .filter({ hasText: 'kitchen island' });
@@ -25,9 +31,12 @@ test('visitor explores the static demo, verifies evidence and reviews unsupporte
   const pool = page.locator('.feature-row').filter({ hasText: 'pool' });
   await island.getByRole('button', { name: 'Verify', exact: false }).click();
   await pool.getByRole('button', { name: 'Reject', exact: true }).click();
-  await page.locator('summary').click();
+  await page.locator('.context-details summary').click();
   const json = await page.getByTestId('generation-context').textContent();
   expect(JSON.parse(json!).verifiedFeatures).toEqual(['kitchen island']);
+  await page
+    .getByRole('button', { name: '3 Create draft', exact: true })
+    .click();
   await page.getByRole('button', { name: 'Generate sample draft' }).click();
   const editor = page.getByLabel('Your marketing draft');
   await expect(editor).toHaveValue(/kitchen island/);
@@ -50,6 +59,9 @@ test('visitor explores the static demo, verifies evidence and reviews unsupporte
   await expect(
     page.locator('.review-panel .panel-heading > .badge'),
   ).toHaveText('READY');
+  await page
+    .getByRole('button', { name: '2 Photos & features', exact: true })
+    .click();
   await island.getByRole('button', { name: 'Reject', exact: true }).click();
   await expect(
     page.locator('.review-panel .panel-heading > .badge'),
@@ -57,6 +69,9 @@ test('visitor explores the static demo, verifies evidence and reviews unsupporte
   await expect(
     page.locator('.claim.flagged').filter({ hasText: 'kitchen island' }),
   ).toHaveCount(1);
+  await page
+    .getByRole('button', { name: '3 Create draft', exact: true })
+    .click();
   await page.getByRole('button', { name: 'Generate sample draft' }).click();
   await expect(editor).not.toHaveValue(/kitchen island|pool/);
   await expect(page.locator('.history-panel > button')).toHaveCount(2);
@@ -66,15 +81,19 @@ test('visitor explores the static demo, verifies evidence and reviews unsupporte
   await expect(
     page.getByRole('button', { name: 'Helpful draft', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('.property-browser summary').click();
   await page.getByRole('button', { name: /Maple Row Townhome/ }).click();
   await expect(page.locator('.property-title h3')).toHaveText(
     'Maple Row Townhome',
   );
   await expect(
-    page.getByText('A thoughtful draft is one click away.'),
-  ).toBeVisible();
+    page.getByRole('button', { name: '4 Review & save', exact: true }),
+  ).toBeDisabled();
   await page.getByRole('button', { name: /The Willow House/ }).click();
   await expect(page.locator('.history-panel > button')).toHaveCount(2);
+  await page
+    .getByRole('button', { name: '4 Review & save', exact: true })
+    .click();
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
     path: `docs/screenshots/demo-${testInfo.project.name}.png`,

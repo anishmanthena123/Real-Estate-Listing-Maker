@@ -20,7 +20,7 @@ async function main() {
     const inputs = Object.keys(result.metafile!.inputs);
     if (
       inputs.some((path) =>
-        /src\/server\/(?:auth|db|env|service|storage)|src\/server\/ai\/provider/.test(
+        /src\/server\/(?:auth|db|env|service|storage|lookup)|src\/server\/ai\/provider/.test(
           path,
         ),
       )

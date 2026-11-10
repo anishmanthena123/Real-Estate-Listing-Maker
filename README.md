@@ -22,6 +22,12 @@ npm run demo:test
 
 ![Interactive portfolio demo](docs/screenshots/demo-desktop.png)
 
+## Live AI and property lookup
+
+The hosted full app supports OpenAI-compatible photo analysis and an authenticated ATTOM public-record lookup. See [Live API setup](docs/LIVE_APIS.md). Both keys stay server-side. GitHub Pages remains a key-free static demo and cannot run these integrations.
+
+The guided workflow is address → photos/verification → content/review. You can save an address without inventing a price, bedroom count, or dimensions. Real lookup suggestions require review, and missing facts remain null. Assessed/sale values are never substituted for a listing price.
+
 ## Problem
 
 A fluent property description can invent a renovation, overstate a material, or assert that a neighborhood is safe. A model seeing an island in a photo does not establish that the kitchen was renovated. Marketing teams need traceable evidence and an explicit review process, not just a better prompt.
@@ -163,7 +169,7 @@ npm run db:migrate:sql
 npm run dev
 ```
 
-The example database password is for a loopback-only local Docker database. Use a unique secret and managed connection string in production. No real AI credential is required for the default mock workflow.
+The example database password is for a loopback-only local Docker database. Use a unique secret and managed connection string in production. No real AI credential is required for the default mock workflow. Automatic lookup is disabled by default; enabling it requires ATTOM access separately.
 
 `npm ci` generates the engine-free Prisma client. Native `npm run db:migrate` / `npm run db:dev` require access to `binaries.prisma.sh` for verified Prisma tooling downloads. This environment initially blocked that host. `db:migrate:sql` applies the committed SQL under a PostgreSQL advisory lock with checksums, transactions, and Prisma-compatible migration records. It is tested for repeat application. It refuses changed or unfinished migration history. It is **not** a schema-diff generator or general replacement for Prisma Migrate's repair/shadow-database tooling. See the decisions document before modifying migrations.
 
@@ -184,6 +190,8 @@ ALLOW_LOCAL_HTTP=true npm start
 | `MOCK_AI`                             | Select deterministic provider                             | `true`                                                      |
 | `AI_BASE_URL`                         | OpenAI-compatible chat-completions base URL               | `https://api.openai.com/v1`; live mode requires HTTPS       |
 | `AI_MODEL`                            | Provider model supporting text and vision                 | `gpt-4o-mini`                                               |
+| `PROPERTY_LOOKUP_PROVIDER`            | Enable real public-record lookup                          | `disabled` or `attom`                                       |
+| `ATTOM_API_KEY`                       | Private ATTOM Property API credential                     | Required when lookup is enabled                             |
 | `AI_API_KEY`                          | Server-only AI credential                                 | Required only when `MOCK_AI=false`                          |
 | `STORAGE_DIR`                         | Private persistent photo directory, outside public assets | `.data/photos`                                              |
 | `TEST_DATABASE_URL`                   | Isolated disposable integration/browser database          | Required for those tests; ends in `_test`                   |

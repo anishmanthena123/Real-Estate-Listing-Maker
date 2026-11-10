@@ -46,6 +46,18 @@ export function AddressIntake({
           Sample addresses load fictional demo records. Other addresses start
           with unknown property details—there is no live property-data lookup.
         </p>
+        <button
+          type="button"
+          className="sample-address"
+          onClick={() => {
+            const sample = '128 Willow Lane, Austin, TX 78704';
+            setAddress(sample);
+            setError('');
+            open(resolveDemoAddress(sample, properties));
+          }}
+        >
+          Try a fictional sample address
+        </button>
         {error && (
           <p role="alert" className="error">
             {error}

@@ -53,6 +53,7 @@ start().catch((error) => {
       'MOCK_AI',
       'PORT ',
       'AI_BASE_URL',
+      'PROPERTY_LOOKUP_PROVIDER',
       'Database migration',
     ].some((prefix) => error.message.startsWith(prefix))
   )

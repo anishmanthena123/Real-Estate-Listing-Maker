@@ -37,7 +37,7 @@ export function ReviewPanel({
   return (
     <section className="workflow-panel review-panel">
       <div className="panel-heading">
-        <span className="step-number">03</span>
+        <span className="step-number">04</span>
         <div>
           <h4>Review the claims. Own the story.</h4>
           <p>Edit freely, inspect support, and keep a human in the loop.</p>

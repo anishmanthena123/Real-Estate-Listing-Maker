@@ -90,12 +90,12 @@ model Property {
   city            String
   state           String
   zipCode         String
-  price           Decimal           @db.Decimal(14, 2)
-  bedrooms        Int
-  bathrooms       Decimal           @db.Decimal(5, 1)
-  squareFeet      Int
-  propertyType    String
-  yearBuilt       Int
+  price           Decimal?           @db.Decimal(14, 2)
+  bedrooms        Int?
+  bathrooms       Decimal?           @db.Decimal(5, 1)
+  squareFeet      Int?
+  propertyType    String?
+  yearBuilt       Int?
   lotSize         Decimal?          @db.Decimal(14, 2)
   notes           String            @default("")
   status          PropertyStatus    @default(DRAFT)

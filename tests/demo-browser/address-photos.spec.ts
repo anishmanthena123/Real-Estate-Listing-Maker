@@ -19,10 +19,16 @@ test('address entry and local pictures remain isolated, grounded and resettable'
   );
   await expect(page.locator('.facts-bar')).toContainText('Not supplied');
   await expect(page.locator('.photo-placeholder')).toHaveCount(0);
+  await page
+    .getByRole('button', { name: '3 Create draft', exact: true })
+    .click();
   await page.getByRole('button', { name: 'Generate sample draft' }).click();
   await expect(page.getByLabel('Your marketing draft')).toHaveValue(
     'Located at 900 Test Avenue, Example City.',
   );
+  await page
+    .getByRole('button', { name: '2 Photos & features', exact: true })
+    .click();
   const bytes = await sharp({
     create: { width: 20, height: 12, channels: 3, background: '#bcd8b0' },
   })
@@ -47,15 +53,25 @@ test('address entry and local pictures remain isolated, grounded and resettable'
     .locator('.feature-row')
     .filter({ hasText: 'kitchen island' });
   await expect(feature.locator('.badge')).toHaveText('PENDING');
+  await page
+    .getByRole('button', { name: '3 Create draft', exact: true })
+    .click();
   await page.getByRole('button', { name: 'Generate sample draft' }).click();
   await expect(page.getByLabel('Your marketing draft')).not.toHaveValue(
     /kitchen island/,
   );
+  await page
+    .getByRole('button', { name: '2 Photos & features', exact: true })
+    .click();
   await feature.getByRole('button', { name: 'Verify', exact: false }).click();
+  await page
+    .getByRole('button', { name: '3 Create draft', exact: true })
+    .click();
   await page.getByRole('button', { name: 'Generate sample draft' }).click();
   await expect(page.getByLabel('Your marketing draft')).toHaveValue(
     /Features kitchen island/,
   );
+  await page.locator('.property-browser summary').click();
   await page.getByRole('button', { name: /The Willow House/ }).click();
   await expect(page.locator('.imported-gallery article')).toHaveCount(0);
   await page

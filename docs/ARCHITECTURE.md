@@ -60,3 +60,9 @@ The current implementation has bounded pages but no cursor pagination, synchrono
 ## Standalone portfolio demo
 
 `src/demo` is an isolated browser-only React entrypoint bundled with esbuild for free GitHub Pages hosting. It shares the pure evidence projection and claim validator with the server but never imports authentication, database, storage or live provider code. A bundling guard enforces that separation. Fictional sample data and deterministic generation are labeled in the UI; all interaction state is in memory. The static demo provides no security boundary for real property data and does not replace the authenticated application. See PORTFOLIO_DEMO.md for deployment and limitations.
+
+## Address-only records and public-record enrichment
+
+A shared address parser supports the one-field entry UI. Structured address fields remain required; price, bedroom/bathroom counts, area, type and construction year may be null when unknown. The same context builder omits unknown facts, while existing numeric validation and owner scoping stay in force. An additive migration preserves existing records.
+
+The authenticated `/api/property-lookup` controller validates address/origin/session and applies a database-backed per-user limit before a server-only provider adapter queries ATTOM. Its bounded response is mapped to suggestions with source/retrieval metadata. The UI requires review and never autosaves an imported record. Current listing price is not inferred from assessment/AVM/sale data. The existing vision adapter remains independent; detections are PENDING until verified. No live keys or provider clients are bundled in the GitHub Pages demo.

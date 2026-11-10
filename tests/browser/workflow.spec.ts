@@ -38,6 +38,9 @@ test('agent verifies evidence, reviews claims, saves ready content and revisits 
     ])
       await page.getByLabel(label, { exact: true }).fill(value);
     await page
+      .getByLabel('Property type', { exact: true })
+      .selectOption('House');
+    await page
       .getByRole('button', { name: 'Save property', exact: true })
       .click();
     await expect(
@@ -65,6 +68,9 @@ test('agent verifies evidence, reviews claims, saves ready content and revisits 
     await expect(island.locator('.badge')).toHaveText('PENDING');
     await island.getByRole('button', { name: 'Verify', exact: true }).click();
     await windows.getByRole('button', { name: 'Reject', exact: true }).click();
+    await page
+      .getByRole('button', { name: 'Continue to content', exact: false })
+      .click();
     await page
       .getByRole('button', { name: 'Generate draft', exact: true })
       .click();

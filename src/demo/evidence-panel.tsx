@@ -24,7 +24,7 @@ export function EvidencePanel({
   return (
     <section className="workflow-panel">
       <div className="panel-heading">
-        <span className="step-number">01</span>
+        <span className="step-number">02</span>
         <div>
           <h4>Make the evidence yours.</h4>
           <p>

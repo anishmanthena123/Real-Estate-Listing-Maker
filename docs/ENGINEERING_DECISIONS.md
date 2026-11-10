@@ -59,3 +59,11 @@ The production dependency graph reports no advisories after the configuration-to
 ## Free reviewer-facing demonstration
 
 A separate static entrypoint lets portfolio reviewers explore the central grounding/review workflow without creating accounts or paying for model calls. It reuses the production context builder and validator rather than maintaining weaker duplicate rules. This deliberately trades real AI, persistence and authentication for zero-backend hosting. The full application remains unchanged apart from a structural input type for the pure context builder. The demo labels its fictional fixtures, fixed suggestions and local generation, and makes no claim to be a deployed live-AI product.
+
+## Unknown facts and address-based lookup
+
+Requiring all numeric fields forces agents to type guesses when a provider lacks data. Address fields stay required, but price, bed/bath counts, area, type and year can now remain null in PostgreSQL. The existing pure grounding projection omits unknown values; zero remains a distinct valid value. The migration preserves prior data, nonnegative SQL checks and owner-scoped operations.
+
+The server-only ATTOM adapter is separate from image analysis and generation. It maps only explicit supported fields from a bounded response, rejects multiple matches, returns source/retrieval metadata for review and never substitutes assessment, AVM or historical sale values for current listing price. Imported facts become the authenticated agent's assertions after review; there is no claim that the third-party record independently guarantees physical truth. Permanent raw-provider provenance storage is not implemented. API contract tests use fixtures; live credentials and billing access remain external prerequisites.
+
+The website now uses short task-oriented steps rather than displaying every form and review panel at once. Navigation preserves unsaved editor state; evidence changes still require revalidation before READY. The public static demo shares these UI conventions without exposing live-provider credentials or pretending to run backend operations.

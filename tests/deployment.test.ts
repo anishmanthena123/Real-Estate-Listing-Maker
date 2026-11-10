@@ -106,3 +106,17 @@ describe('public readiness response', () => {
     expect(mocks.query).not.toHaveBeenCalled();
   });
 });
+
+describe('lookup readiness', () => {
+  it('does not report healthy when configured lookup lacks its credential', async () => {
+    vi.stubEnv('DATABASE_URL', 'postgresql://localhost/test');
+    vi.stubEnv('APP_ORIGIN', 'http://localhost:3000');
+    vi.stubEnv('MOCK_AI', 'true');
+    vi.stubEnv('PROPERTY_LOOKUP_PROVIDER', 'attom');
+    vi.stubEnv('ATTOM_API_KEY', '');
+    const response = await GET();
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ status: 'unavailable' });
+    expect(mocks.query).not.toHaveBeenCalled();
+  });
+});

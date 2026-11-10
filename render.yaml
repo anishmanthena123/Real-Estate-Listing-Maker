@@ -33,6 +33,10 @@ services:
         value: gpt-4o-mini
       - key: AI_API_KEY
         sync: false
+      - key: PROPERTY_LOOKUP_PROVIDER
+        value: attom
+      - key: ATTOM_API_KEY
+        sync: false
 
 databases:
   - name: listly-db

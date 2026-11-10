@@ -9,6 +9,8 @@ export async function GET() {
     const env = getEnv();
     if (env.MOCK_AI === 'false' && !env.AI_API_KEY?.trim())
       throw new Error('Missing AI configuration');
+    if (env.PROPERTY_LOOKUP_PROVIDER === 'attom' && !env.ATTOM_API_KEY?.trim())
+      throw new Error('Missing lookup configuration');
     await db.$queryRaw`SELECT 1`;
     await access(env.STORAGE_DIR, constants.W_OK);
     return Response.json(
